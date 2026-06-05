@@ -440,69 +440,109 @@ function buildBrief(d){
   return L.join("\n");
 }
 
-/* PROMPT para Claude Code */
-function buildPrompt(d){
-  const acc=j(d.accion), objs=j(d.objetivos), funcs=j(d.func);
-  return `Eres un desarrollador y diseñador web senior. Construye una página web profesional, moderna y orientada a conversión para el siguiente negocio real. Entrega un sitio completo (HTML/CSS/JS, responsive y rápido), listo para producción.
+/* PROMPT para Claude Code — usa TODOS los datos del brief + los archivos subidos */
+function buildPrompt(d, assets){
+  assets = assets || {logo:null, fotos:[]};
+  const acc = j(d.accion);
+  const tel = (d.telefono||d.telefonoContacto||"").replace(/[^0-9]/g,"");
+  const ctaMap = {
+    "llamar": `CTA "Llamar ahora" con enlace tel:+34${tel||"[TELEFONO]"}, visible en hero, al cerrar cada sección y en barra fija inferior en móvil.`,
+    "WhatsApp": `CTA "Escríbenos por WhatsApp" con enlace https://wa.me/34${tel||"[TELEFONO]"}?text=Hola%2C%20vengo%20de%20vuestra%20web (mensaje precargado). Botón flotante fijo.`,
+    "rellenar formulario": `Formulario de contacto corto (nombre, teléfono/email, mensaje) como acción central. Si no hay backend, conéctalo a Formspree o usa un mailto a ${j(d.email)} como placeholder y anótalo para activar el envío real.`,
+    "pedir presupuesto": `Formulario "Pide presupuesto sin compromiso" (servicio + datos de contacto). Mismo criterio de envío; CTA muy visible en hero y final.`,
+    "reservar cita": `CTA "Reservar cita" hacia un sistema de reservas (Calendly/booking) o, si no lo hay, un formulario de solicitud de cita; deja nota para conectar la herramienta.`
+  };
+  const ctaImpl = ctaMap[acc] || `CTA principal "${acc}" repetido, visible y con barra fija en móvil.`;
+  const A=[];
+  if(assets.logo) A.push(`- Logo REAL del cliente (descárgalo y úsalo en cabecera y footer): ${assets.logo}`);
+  else if(d.tieneLogo==="No, necesitamos uno") A.push(`- Logo: NO tienen → diseña un wordmark sencillo con el nombre "${j(d.empresa)}" y los colores corporativos.`);
+  else A.push(`- Logo: ${j(d.logoUrl)!=="—"?("ver enlace "+j(d.logoUrl)):"no adjuntado → usa un wordmark con el nombre y déjalo como [PENDIENTE: logo]"}.`);
+  if(assets.fotos && assets.fotos.length) assets.fotos.forEach((u,i)=>A.push(`- Foto REAL ${i+1} (úsala en hero/galería/secciones): ${u}`));
+  else A.push(`- Fotos: ${(d.fotos&&d.fotos!=="No, ninguna")?"dicen tener fotos pero no las adjuntaron → deja huecos [PENDIENTE: fotos] y pídelas":"sin fotos propias → usa imágenes neutras de stock como placeholder y márcalas para sustituir"}.`);
 
-# CONTEXTO DEL CLIENTE
-- Empresa: ${j(d.empresa)} (${j(d.sector)})
-- Ubicación: ${[d.ciudad,d.provincia].filter(Boolean).join(", ")||"n/d"} · Zonas de servicio: ${j(d.zonas)}
-- Fundada: ${j(d.anio)} · Empleados: ${j(d.empleados)}
-- Público: ${j(d.publico)}
+  return `Actúa como diseñador y desarrollador web senior especializado en webs de conversión para pymes locales en España. CONSTRUYE una página web profesional, completa y lista para producción para el negocio descrito abajo, que hoy NO tiene web. Al final, entrega una lista de lo que falta por confirmar con el cliente.
 
-# OBJETIVO DE NEGOCIO
-- Meta de la web: ${objs}
-- Acción principal del visitante (CTA dominante): ${acc}
-- Problema que resuelve la empresa: ${j(d.problema)}
+## CÓMO USAR ESTE BRIEF (léelo antes de empezar)
+1. Usa EXCLUSIVAMENTE los datos reales de abajo. No inventes servicios, precios, testimonios, premios ni datos de contacto.
+2. Donde un dato falte o ponga "—", deja un marcador visible [PENDIENTE: ...] y recógelo en la lista final. No rellenes con texto genérico.
+3. TODA la web debe empujar a UNA sola acción principal: «${acc}». Repítela en el hero, al cierre de cada sección y en una barra fija inferior en móvil.
+4. Toma decisiones de diseño/estructura coherentes con el sector, los objetivos y el estilo, y justifica las clave en comentarios del código.
+
+## STACK Y CALIDAD (obligatorio)
+- HTML5 + CSS + JavaScript vanilla (sin frameworks pesados). Un único proyecto desplegable en Netlify arrastrando la carpeta.
+- Mobile-first y 100% responsive. Rápido (objetivo Lighthouse 90+). Accesible (WCAG AA: contraste, foco visible, alt en imágenes, labels en formularios).
+- Código limpio y comentado, sin dependencias innecesarias.
+
+## NEGOCIO
+- Empresa: ${j(d.empresa)} · Sector: ${j(d.sector)}
+- Ubicación: ${[d.ciudad,d.provincia].filter(Boolean).join(", ")||"—"} · Zonas de servicio: ${j(d.zonas)}
+- Fundada: ${j(d.anio)} · Tamaño: ${j(d.empleados)} empleados · Trabaja con: ${j(d.publico)}
+- Teléfono: ${j(d.telefono)} · Email: ${j(d.email)} · Dirección: ${j(d.direccion)}
+- Redes sociales: ${j(d.redes)} · Ficha Google Maps: ${j(d.maps)}
+
+## OBJETIVO Y PÚBLICO
+- Qué debe lograr la web: ${j(d.objetivos)}
+- Acción principal (CTA dominante): ${acc}
 - Cliente ideal: ${j(d.clienteIdeal)}
+- Problema que resuelve el negocio (base del titular del hero): ${j(d.problema)}
 
-# SERVICIOS
-- Principal (protagonista): ${j(d.servicioPrincipal)}
-- Todos: ${j(d.servicios)}
-- Secundarios: ${j(d.serviciosSec)} · Destacar: ${j(d.destacar)} · NO promocionar: ${j(d.noPromocionar)}
+## SERVICIOS (jerarquía clara)
+- Protagonista de la web: ${j(d.servicioPrincipal)}
+- Catálogo completo: ${j(d.servicios)}
+- Secundarios: ${j(d.serviciosSec)} · Destacar especialmente: ${j(d.destacar)} · NO promocionar: ${j(d.noPromocionar)}
 
-# ESTRUCTURA WEB RECOMENDADA
-1. Hero con propuesta de valor clara + CTA "${acc}" visible.
-2. Servicios (destacando "${j(d.servicioPrincipal)}").
+## ESTRUCTURA RECOMENDADA (adáptala con criterio)
+1. Hero: titular con la propuesta de valor (a partir de "${j(d.problema)}"), subtítulo y CTA «${acc}».
+2. Servicios, con "${j(d.servicioPrincipal)}" como bloque principal.
 3. Por qué elegirnos / diferenciales: ${j(d.diferenciales)}.
-4. Prueba social (testimonios/reseñas: ${j(d.testimonios)}).
-5. ${d.equipo==="Sí"?"Equipo.":"(sin sección de equipo)"}
-6. FAQ: ${j(d.faq)}.
-7. Contacto con la acción principal (${acc}) + mapa si aplica.
-Sticky CTA permanente (móvil incluido) con la acción principal.
+4. Prueba social: ${(d.testimonios&&d.testimonios!=="No todavía")?"incluye testimonios/reseñas (déjalos como placeholder para pegar sus reseñas de Google)":"aún sin reseñas → refuerza confianza con garantías, cercanía y datos del negocio"}.
+5. ${d.equipo==="Sí"?"Sección de equipo.":"(sin sección de equipo)"}
+6. ${j(d.faq)!=="—"?("FAQ con estas dudas reales: "+j(d.faq)):"FAQ breve con las dudas típicas del sector"}.
+7. Contacto: NAP (nombre, dirección, teléfono) + CTA «${acc}» + mapa si hay dirección/Google Maps.
 
-# ESTILO VISUAL
-- Tono: ${j(d.estilo)}.
-- Colores corporativos: ${j(d.colores)}. Logo: ${j(d.tieneLogo)} (${j(d.logoUrl)}).
-- Referencias que gustan: ${j(d.refs)}.
-- Evitar: ${j(d.noGusta)}.
-- Mobile-first, accesible (contraste AA), carga rápida, animaciones sutiles.
+## ESTILO E IDENTIDAD
+- Estilo deseado: ${j(d.estilo)}.
+- Colores corporativos: ${j(d.colores)!=="—"?j(d.colores):"no definidos → propón una paleta sobria acorde al sector y al estilo, con buen contraste"}.
+- Referencias que le gustan (inspírate, NO copies): ${j(d.refs)}.
+- Competidores (diferénciate de ellos): ${j(d.competidores)}.
+- Evitar a toda costa: ${j(d.noGusta)}.
 
-# FUNCIONALIDADES
-${funcs}
+## ASSETS DEL CLIENTE (úsalos en la web)
+${A.join("\n")}
 
-# SEO
-- SEO local para ${j(d.ciudad)} y sector "${j(d.sector)}".
-- Title + meta description optimizados, encabezados jerárquicos, schema LocalBusiness, sitemap, alt en imágenes.
+## CTA PRINCIPAL — IMPLEMENTACIÓN CONCRETA
+${ctaImpl}
 
-# COPYWRITING
-- Español de España, cercano y profesional, orientado a beneficios (no a features).
-- Cada sección termina conduciendo a la acción principal: ${acc}.
-- Nada de relleno genérico; usar los datos reales de este brief.
+## FUNCIONALIDADES A INCLUIR
+${j(d.func)}
+Implementa cada una de forma real y simple: WhatsApp→wa.me, llamada→tel:, mapa→iframe de Google Maps con la dirección, galería→las fotos aportadas, SEO local→schema+metas. Lo que requiera backend o herramienta externa, déjalo funcional con placeholder y anótalo.
 
-# ENTREGABLES
-- Web responsive completa (1 página o multipágina según convenga), lista para desplegar en Netlify.
-- Formularios funcionales; botones de ${acc} operativos (tel:, wa.me, formulario).
+## SEO
+- Optimiza para "${j(d.servicioPrincipal)} en ${j(d.ciudad)}" y variantes locales.
+- <title> y meta description con sector + ciudad; Open Graph; encabezados jerárquicos; alt en todas las imágenes.
+- Schema.org LocalBusiness con NAP real: nombre "${j(d.empresa)}", teléfono ${j(d.telefono)}, dirección ${j(d.direccion)}, zona ${j(d.ciudad)}.
+- Genera sitemap.xml y robots.txt.
 
-# RESTRICCIONES
-- No inventar datos que no estén en el brief; si falta algo, dejar placeholders claros.
-- Contacto: tel ${j(d.telefono)}, email ${j(d.email)}.
+## COPYWRITING
+- Español de España, cercano y profesional, orientado a beneficios para ${j(d.clienteIdeal)} (no a tecnicismos).
+- Titular del hero que conecte directamente con "${j(d.problema)}".
+- Cada sección cierra empujando a «${acc}».
+- Material disponible → historia: "${j(d.historia)}"; por qué elegirnos: "${j(d.porQue)}"; ¿textos propios?: ${j(d.textos)}. Si no hay textos, redáctalos tú desde el brief y márcalos como propuesta a validar.
 
-# DATOS DE CONTENIDO DISPONIBLES
-- Historia: ${j(d.historia)}
-- Por qué elegirnos: ${j(d.porQue)}
-- Fotos: ${j(d.fotos)} · Textos: ${j(d.textos)} · Documentos: ${j(d.documentos)}`;
+## NOTAS FINALES DEL CLIENTE
+${j(d.comentariosFinales)}
+
+## ENTREGABLES
+1. La web completa (HTML/CSS/JS), responsive y desplegable en Netlify.
+2. sitemap.xml + robots.txt + favicon.
+3. Sección final "QUÉ PEDIR AL CLIENTE": lista de todos los [PENDIENTE] (logo, fotos, textos, reseñas, datos que falten).
+
+## CHECKLIST ANTES DE TERMINAR
+- [ ] Perfecto en móvil y barra de CTA «${acc}» siempre accesible.
+- [ ] Enlaces de contacto operativos: tel ${j(d.telefono)}, email ${j(d.email)}${tel?", WhatsApp wa.me/34"+tel:""}.
+- [ ] Title/description/OpenGraph/schema LocalBusiness con datos reales.
+- [ ] Cero relleno: o es real, o es un [PENDIENTE] anotado.
+- [ ] Interlocutor del proyecto: ${j(d.contacto)}${(d.cargo&&d.cargo!=="—")?" ("+j(d.cargo)+")":""} · mejor horario para coordinar: ${j(d.horario)}.`;
 }
 
 /* ENVÍO */
@@ -513,15 +553,16 @@ async function submit(){
   sending=true; nextBtn.disabled=true; prevBtn.disabled=true;
   nextBtn.innerHTML='<span class="spin"></span> Enviando…';
   // 1) sube logo/fotos a Supabase (si los hay); nunca bloquea el envío del brief
-  let archivos="";
+  let archivos="", assets={logo:null,fotos:[]};
   try{
     const up=await uploadFiles(d.empresa);
+    assets={logo:up.logo,fotos:up.fotos};
     if(up.logo) archivos+="\nLogo: "+up.logo;
     up.fotos.forEach((u,i)=>archivos+="\nFoto "+(i+1)+": "+u);
     if(up.intentos>0 && !up.ok) archivos+="\n(El cliente intentó subir "+up.intentos+" archivo(s) pero la subida no se completó"+(up.error?" — "+up.error:"")+". Pídeselos por WhatsApp/email.)";
   }catch(e){ console.warn("uploads:",e); }
   // 2) genera resumen + brief + prompt y envía por EmailJS
-  const resumen=buildResumen(d), brief=buildBrief(d), prompt=buildPrompt(d);
+  const resumen=buildResumen(d), brief=buildBrief(d), prompt=buildPrompt(d,assets);
   const params={
     empresa:d.empresa||"", sector:d.sector||"", ciudad:[d.ciudad,d.provincia].filter(Boolean).join(", "),
     contacto:d.contacto||d.empresa||"", email:d.emailContacto||d.email||"", telefono:d.telefonoContacto||d.telefono||"",
