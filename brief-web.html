@@ -15,6 +15,7 @@
 <meta property="og:url" content="https://processai.studio/brief-web" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%236366f1'/%3E%3Ctext x='16' y='23' font-size='20' font-family='Arial' font-weight='bold' fill='white' text-anchor='middle'%3EP%3C/text%3E%3C/svg%3E" />
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -66,6 +67,13 @@ a{color:inherit}
 .f.full{grid-column:1/-1}
 label{font-size:13px;font-weight:600;color:var(--dim)}
 label .opt{color:var(--muted);font-weight:400}
+.opt-badge{display:inline-block;margin-left:7px;font-size:10px;font-weight:600;color:var(--muted);background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:999px;padding:1px 8px;vertical-align:middle;letter-spacing:.02em}
+.legend{display:flex;gap:8px 18px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-top:13px}
+.legend b{color:var(--rose)}
+input[type=file]{padding:10px 12px;font-size:13px;cursor:pointer}
+input[type=file]::file-selector-button{background:rgba(99,102,241,.2);border:1px solid var(--indigo);color:#fff;border-radius:8px;padding:7px 12px;margin-right:11px;cursor:pointer;font-family:inherit;font-weight:600;font-size:12.5px}
+.prev{display:flex;flex-wrap:wrap;gap:8px;margin-top:2px}
+.prev .thumb{width:62px;height:62px;border-radius:9px;object-fit:cover;border:1px solid var(--border-2);background:#0d0f1c}
 input,select,textarea{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:11px;padding:12px 13px;color:var(--text);font-family:inherit;font-size:14.5px;transition:var(--t);color-scheme:dark}
 input::placeholder,textarea::placeholder{color:#6b7090}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--indigo);background:rgba(99,102,241,.07);box-shadow:0 0 0 3px rgba(99,102,241,.16)}
@@ -124,6 +132,7 @@ select option{background:#11131f;color:var(--text)}
       <h1>Cuéntanos cómo debe ser <b>tu nueva web</b></h1>
       <p>Este formulario nos ayuda a entender tu negocio, tus servicios y tus objetivos para preparar una web profesional adaptada a tu empresa.</p>
       <span class="note">⏱️ Tardarás entre 5 y 8 minutos · cuanta más información, mejor será tu web</span>
+      <div class="legend"><span><b>*</b> = obligatorio</span><span>· todo lo demás es <span style="color:var(--dim)">opcional</span>: rellena solo lo que sepas</span></div>
     </div>
 
     <div class="steps" id="steps"></div>
@@ -203,7 +212,8 @@ select option{background:#11131f;color:var(--text)}
           <div class="sub">Cómo queréis que se vea y se sienta.</div>
           <div class="grid">
             <div class="f"><label>¿Tenéis logo?</label><select name="tieneLogo"><option value="">Selecciona…</option><option>Sí, lo tenemos</option><option>No, necesitamos uno</option></select></div>
-            <div class="f"><label>Enlace al logo <span class="opt">(Drive, web…)</span></label><input name="logoUrl" placeholder="Si lo tenéis online; si no, os lo pediremos"></div>
+            <div class="f"><label>Enlace al logo <span class="opt">(Drive, web…)</span></label><input name="logoUrl" placeholder="Si lo tenéis online; si no, súbelo abajo"></div>
+            <div class="f full"><label>O sube tu logo aquí <span class="opt">opcional · JPG o PNG</span></label><input type="file" id="logoFile" accept="image/png,image/jpeg"><div class="prev" id="logoPrev"></div></div>
             <div class="f full"><label>Colores corporativos</label><input name="colores" placeholder="Ej: azul y blanco, o códigos #hex si los sabéis"></div>
             <div class="f full"><label>¿Qué estilo os gusta?</label>
               <div class="chips">
@@ -237,6 +247,7 @@ select option{background:#11131f;color:var(--text)}
             <div class="f"><label>¿Tenéis fotos?</label><select name="fotos"><option value="">Selecciona…</option><option>Sí, profesionales</option><option>Algunas de móvil</option><option>No, ninguna</option></select></div>
             <div class="f"><label>¿Tenéis textos preparados?</label><select name="textos"><option value="">Selecciona…</option><option>Sí</option><option>Parcialmente</option><option>No, los necesitamos</option></select></div>
             <div class="f full"><label>Documentos disponibles <span class="opt">(catálogos, dossiers…)</span></label><input name="documentos" placeholder="Qué material tenéis"></div>
+            <div class="f full"><label>Sube fotos de tu empresa <span class="opt">opcional · JPG/PNG · hasta 8 · máx 5MB c/u</span></label><input type="file" id="fotoFiles" accept="image/png,image/jpeg,image/webp" multiple><div class="prev" id="fotoPrev"></div></div>
           </div>
         </fieldset>
 
@@ -275,7 +286,7 @@ select option{background:#11131f;color:var(--text)}
             <div class="f full"><label>Mejor horario para contactar</label><input name="horario" placeholder="Ej: mañanas, de 16 a 19h…"></div>
             <div class="f full"><label>Comentarios finales</label><textarea name="comentariosFinales" placeholder="Cualquier cosa que quieras añadir."></textarea></div>
             <div class="f full">
-              <label class="consent"><input type="checkbox" id="consent" required> Acepto que ProcessAI Studio use esta información para preparar una propuesta y contactar conmigo sobre mi proyecto web. Consulta la <a href="https://processai.studio/" target="_blank" rel="noopener">Política de privacidad</a>.</label>
+              <label class="consent"><input type="checkbox" id="consent" required> Acepto que ProcessAI Studio trate los datos y archivos que envío para preparar una propuesta y contactar conmigo sobre mi proyecto web. Consulta la <a href="https://processai.studio/privacidad" target="_blank" rel="noopener">Política de privacidad</a>.</label>
             </div>
           </div>
         </fieldset>
@@ -307,6 +318,35 @@ select option{background:#11131f;color:var(--text)}
 /* ===== EmailJS (misma config que la landing — sin nuevo template) ===== */
 const EMAILJS_PUBLIC="cGWr7CBEE37X4kzLN", EMAILJS_SERVICE="service_1wfuqbu", EMAILJS_TEMPLATE="template_6m3d5gn";
 if(window.emailjs){try{emailjs.init({publicKey:EMAILJS_PUBLIC});}catch(_){try{emailjs.init(EMAILJS_PUBLIC);}catch(__){}}}
+
+/* ===== Supabase Storage — subida de logo y fotos (bucket 'brief-uploads') ===== */
+const SB_URL="https://yidfpqgialfjfwdmxdew.supabase.co", SB_KEY="sb_publishable_5RG5h74oTYKV2I2sGAXQtQ_Gj95A6vh", SB_BUCKET="brief-uploads", MAXMB=5;
+let sb=null; try{ if(window.supabase) sb=window.supabase.createClient(SB_URL,SB_KEY); }catch(_){}
+function slugify(s){return (String(s||"empresa").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/(^-|-$)/g,"").slice(0,40))||"empresa";}
+async function uploadFiles(empresa){
+  const out={logo:null,fotos:[],intentos:0,ok:false,error:null};
+  const lf=document.getElementById("logoFile"), ff=document.getElementById("fotoFiles");
+  const logo=lf&&lf.files[0]?lf.files[0]:null, fotos=ff?[...ff.files].slice(0,8):[];
+  const all=[]; if(logo) all.push(["logo",logo]); fotos.forEach((f,i)=>all.push(["foto-"+(i+1),f]));
+  out.intentos=all.length;
+  if(!all.length) return out;
+  if(!sb){ out.error="storage no disponible"; return out; }
+  const folder=slugify(empresa)+"-"+Date.now();
+  for(const [tag,file] of all){
+    if(file.size>MAXMB*1024*1024) continue;                       // ignora archivos > 5MB
+    try{
+      const ext=(file.name.split(".").pop()||"img").toLowerCase().replace(/[^a-z0-9]/g,"").slice(0,5)||"img";
+      const path=folder+"/"+tag+"."+ext;
+      const {error}=await sb.storage.from(SB_BUCKET).upload(path,file,{contentType:file.type||"application/octet-stream",upsert:false});
+      if(error){ out.error=error.message; continue; }
+      const {data,error:e2}=await sb.storage.from(SB_BUCKET).createSignedUrl(path,60*60*24*30); // enlace temporal (30 días)
+      if(e2||!data||!data.signedUrl){ out.error=(e2&&e2.message)||"no se pudo generar el enlace"; continue; }
+      if(tag==="logo") out.logo=data.signedUrl; else out.fotos.push(data.signedUrl);
+    }catch(e){ out.error=String(e&&e.message||e); }
+  }
+  out.ok=!!out.logo||out.fotos.length>0;
+  return out;
+}
 
 const TOTAL=7, LABELS=["Datos de la empresa","Servicios","Clientes y objetivos","Estilo visual","Contenido","Funcionalidades","Contacto y confirmación"];
 let step=1, sending=false;
@@ -466,21 +506,30 @@ ${funcs}
 }
 
 /* ENVÍO */
-function submit(){
+async function submit(){
   if(sending) return;
   if(!validStep()) return;             // valida paso 7 (incluye consent)
   const d=collect();
+  sending=true; nextBtn.disabled=true; prevBtn.disabled=true;
+  nextBtn.innerHTML='<span class="spin"></span> Enviando…';
+  // 1) sube logo/fotos a Supabase (si los hay); nunca bloquea el envío del brief
+  let archivos="";
+  try{
+    const up=await uploadFiles(d.empresa);
+    if(up.logo) archivos+="\nLogo: "+up.logo;
+    up.fotos.forEach((u,i)=>archivos+="\nFoto "+(i+1)+": "+u);
+    if(up.intentos>0 && !up.ok) archivos+="\n(El cliente intentó subir "+up.intentos+" archivo(s) pero la subida no se completó"+(up.error?" — "+up.error:"")+". Pídeselos por WhatsApp/email.)";
+  }catch(e){ console.warn("uploads:",e); }
+  // 2) genera resumen + brief + prompt y envía por EmailJS
   const resumen=buildResumen(d), brief=buildBrief(d), prompt=buildPrompt(d);
   const params={
     empresa:d.empresa||"", sector:d.sector||"", ciudad:[d.ciudad,d.provincia].filter(Boolean).join(", "),
     contacto:d.contacto||d.empresa||"", email:d.emailContacto||d.email||"", telefono:d.telefonoContacto||d.telefono||"",
-    problema:d.problema||"", objetivos:j(d.objetivos), necesidad:j(d.func),
+    problema:d.problema||"", objetivos:j(d.objetivos), necesidad:j(d.objetivos),
     herramientas:j(d.func), presupuesto:"(brief web)", urgencia:"(brief web)",
-    comentarios:`=== NUEVO BRIEF WEB — ${d.empresa||""} ===\n\n[RESUMEN]\n${resumen}\n\n[BRIEF COMPLETO]\n${brief}`,
+    comentarios:`=== NUEVO BRIEF WEB — ${d.empresa||""} ===\n\n[RESUMEN]\n${resumen}\n\n[BRIEF COMPLETO]\n${brief}`+(archivos?`\n\n[ARCHIVOS SUBIDOS]${archivos}`:""),
     prompt:prompt
   };
-  sending=true; nextBtn.disabled=true; prevBtn.disabled=true;
-  nextBtn.innerHTML='<span class="spin"></span> Enviando…';
   const done=()=>{ $("#formWrap").style.display="none"; $("#doneScreen").classList.add("show"); window.scrollTo({top:0,behavior:"smooth"}); };
   if(!window.emailjs){ done(); return; } // fallback: nunca bloquea al cliente
   emailjs.send(EMAILJS_SERVICE,EMAILJS_TEMPLATE,params)
@@ -491,6 +540,26 @@ function submit(){
       showErr("No se pudo enviar. Inténtalo de nuevo o escríbenos a studiosprocessai@gmail.com / WhatsApp +34 623 10 54 74.");
     });
 }
+
+/* previsualización de imágenes subidas */
+function wirePrev(inputId,boxId){
+  const inp=document.getElementById(inputId), box=document.getElementById(boxId); if(!inp||!box) return;
+  inp.addEventListener("change",()=>{
+    [...box.querySelectorAll("img")].forEach(im=>{try{URL.revokeObjectURL(im.src);}catch(_){}});
+    box.innerHTML=""; let big=false;
+    [...inp.files].slice(0,8).forEach(f=>{ if(f.size>MAXMB*1024*1024) big=true; if(/^image\//.test(f.type)){ const im=document.createElement("img"); im.className="thumb"; im.src=URL.createObjectURL(f); box.appendChild(im); } });
+    if(big) showErr("Alguna imagen supera "+MAXMB+"MB y no se subirá. Redúcela o envíala aparte; el resto del brief se enviará igual."); else hideErr();
+  });
+}
+wirePrev("logoFile","logoPrev"); wirePrev("fotoFiles","fotoPrev");
+
+/* marca automáticamente como "opcional" todo campo que no sea obligatorio */
+document.querySelectorAll(".f > label").forEach(lab=>{
+  if(lab.classList.contains("consent")) return;
+  if(lab.querySelector(".opt")||lab.querySelector(".opt-badge")) return;
+  if(lab.textContent.indexOf("*")>=0) return;
+  const b=document.createElement("span"); b.className="opt-badge"; b.textContent="opcional"; lab.appendChild(b);
+});
 paint();
 </script>
 </body>

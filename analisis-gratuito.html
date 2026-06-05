@@ -113,7 +113,7 @@ input:focus{outline:none;border-color:var(--indigo);background:rgba(99,102,241,.
 
   <div class="card">
     <h2>Tus datos</h2>
-    <div class="sub">Aproximados está bien. No guardamos nada hasta que tú lo pidas.</div>
+    <div class="sub">Aproximados está bien. Solo enviamos estos datos junto a tu contacto cuando pulsas «Generar informe» y aceptas la política.</div>
     <div class="grid">
       <div class="f"><label>Nº de empleados</label><input type="number" min="0" id="empleados" placeholder="Ej: 6"></div>
       <div class="f"><label>Salario medio <span class="opt">(€ bruto/mes)</span></label><input type="number" min="0" id="salario" placeholder="Ej: 1800"></div>
@@ -138,7 +138,7 @@ input:focus{outline:none;border-color:var(--indigo);background:rgba(99,102,241,.
         <div class="f"><label>Email *</label><input id="lead_email" type="email" placeholder="tu@email.com"></div>
         <div class="f"><label>Teléfono *</label><input id="lead_tel" placeholder="Tu teléfono"></div>
       </div>
-      <label class="consent"><input type="checkbox" id="consent"> Acepto que ProcessAI Studio use mis datos para enviarme el informe y contactarme. <a href="https://processai.studio/" target="_blank" rel="noopener">Política de privacidad</a>.</label>
+      <label class="consent"><input type="checkbox" id="consent" required> Acepto que ProcessAI Studio trate mis datos de contacto y los datos de negocio que introduzco para generar mi informe, enviármelo y contactarme. <a href="https://processai.studio/privacidad" target="_blank" rel="noopener">Política de privacidad</a>.</label>
       <div class="ferr" id="ferr"></div>
       <button class="btn btn-primary" id="genBtn">Generar informe y recomendaciones →</button>
     </div>
