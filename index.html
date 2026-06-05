@@ -1297,6 +1297,7 @@ a:focus-visible{outline-offset:4px}
       </div>
       <div class="foot-col"><h4>Producto</h4><a href="#producto">Atención IA 24/7</a><a href="#producto">CRM automático</a><a href="#producto">Flujos de automatización</a><a href="#producto">Panel de control</a></div>
       <div class="foot-col"><h4>Empresa</h4><a href="#soluciones">Soluciones</a><a href="#casos">Casos de uso</a><a href="#porque">Por qué nosotros</a><a href="#faq">FAQ</a></div>
+      <div class="foot-col"><h4>Herramientas gratis</h4><a href="/analisis-gratuito">¿Cuánto pierdes al mes?</a><a href="/brief-web">Brief de tu nueva web</a></div>
       <div class="foot-col"><h4>Contacto</h4><a href="mailto:studiosprocessai@gmail.com">studiosprocessai@gmail.com</a><a href="tel:+34623105474">+34 623 10 54 74</a><a href="https://wa.me/34623105474" target="_blank" rel="noopener">WhatsApp directo →</a><span>España · 100% remoto</span></div>
     </div>
     <div class="foot-bot">
@@ -1658,6 +1659,42 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModals();});
 
 /* ---- varios ---- */
 $("#year").textContent=new Date().getFullYear();
+})();
+</script>
+
+<!-- ===== Popup captación (aparece a los 30s, 1 vez por sesión) ===== -->
+<div id="paiPop" aria-hidden="true">
+  <button id="paiPopX" aria-label="Cerrar">×</button>
+  <div class="pp-emoji">💸</div>
+  <div class="pp-t">¿Sabes cuánto pierde tu empresa al mes?</div>
+  <div class="pp-d">Calcula gratis tu coste oculto en tareas manuales. 2 minutos, sin registro.</div>
+  <a class="pp-cta" href="/analisis-gratuito">Calcular gratis →</a>
+</div>
+<style>
+#paiPop{position:fixed;right:20px;bottom:20px;z-index:9999;max-width:330px;background:#0d0f1c;border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:20px 18px 18px;box-shadow:0 20px 60px rgba(0,0,0,.55);transform:translateY(18px);opacity:0;pointer-events:none;transition:.35s cubic-bezier(.4,0,.2,1);font-family:Inter,system-ui,sans-serif}
+#paiPop.show{transform:none;opacity:1;pointer-events:auto}
+#paiPopX{position:absolute;top:9px;right:11px;background:none;border:none;color:#9398b6;font-size:22px;line-height:1;cursor:pointer}
+#paiPopX:hover{color:#fff}
+#paiPop .pp-emoji{font-size:26px}
+#paiPop .pp-t{color:#f5f6fc;font-weight:800;font-size:16px;margin-top:6px;line-height:1.25}
+#paiPop .pp-d{color:#c9cde0;font-size:13px;margin-top:7px;line-height:1.5}
+#paiPop .pp-cta{display:inline-block;margin-top:13px;background:linear-gradient(120deg,#6366f1,#8b5cf6 50%,#22d3ee);color:#fff;font-weight:700;font-size:13.5px;text-decoration:none;padding:10px 16px;border-radius:10px}
+@media(max-width:520px){#paiPop{right:12px;left:12px;bottom:12px;max-width:none}}
+</style>
+<script>
+(function(){
+  try{
+    if(sessionStorage.getItem("paiPopSeen")) return;
+    setTimeout(function(){
+      var p=document.getElementById("paiPop"); if(!p) return;
+      p.classList.add("show"); p.setAttribute("aria-hidden","false");
+      sessionStorage.setItem("paiPopSeen","1");
+    },30000);
+    var x=document.getElementById("paiPopX");
+    if(x) x.addEventListener("click",function(){
+      var p=document.getElementById("paiPop"); p.classList.remove("show"); p.setAttribute("aria-hidden","true");
+    });
+  }catch(e){}
 })();
 </script>
 </body>
