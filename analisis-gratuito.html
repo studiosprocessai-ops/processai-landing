@@ -15,6 +15,7 @@
 <meta property="og:url" content="https://processai.studio/analisis-gratuito" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%236366f1'/%3E%3Ctext x='16' y='23' font-size='20' font-family='Arial' font-weight='bold' fill='white' text-anchor='middle'%3EP%3C/text%3E%3C/svg%3E" />
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -181,6 +182,8 @@ input:focus{outline:none;border-color:var(--indigo);background:rgba(99,102,241,.
 <script>
 const EMAILJS_PUBLIC="cGWr7CBEE37X4kzLN", EMAILJS_SERVICE="service_1wfuqbu", EMAILJS_TEMPLATE="template_6m3d5gn";
 if(window.emailjs){try{emailjs.init({publicKey:EMAILJS_PUBLIC});}catch(_){try{emailjs.init(EMAILJS_PUBLIC);}catch(__){}}}
+const SB_URL="https://yidfpqgialfjfwdmxdew.supabase.co", SB_KEY="sb_publishable_5RG5h74oTYKV2I2sGAXQtQ_Gj95A6vh";
+let sb=null; try{ if(window.supabase) sb=window.supabase.createClient(SB_URL,SB_KEY); }catch(_){}
 const $=s=>document.querySelector(s);
 const num=id=>Math.max(0,parseFloat($("#"+id).value)||0);
 const eur=n=>"€"+Math.round(n).toLocaleString("es-ES");
@@ -252,6 +255,8 @@ $("#genBtn").addEventListener("click",()=>{
     problema:"Coste oculto en tareas manuales", objetivos:"Automatización / ahorro", necesidad:recs.map(r=>r[1]).join(", "),
     herramientas:recs.map(r=>r[1]).join(", "), presupuesto:eur(inversion)+" (estimado)", urgencia:"",
     comentarios:resumen, prompt:"Lead entrante desde /analisis-gratuito. Preparar propuesta de automatización priorizada según las recomendaciones listadas." };
+  // guarda el lead en el panel (no bloquea al usuario)
+  try{ if(sb) sb.from("leads").insert({ fuente:"analisis-gratuito", empresa, contacto:nombre, email, telefono:tel, ciudad:"", sector:"Calculadora de pérdidas", servicios:recs.map(r=>r[1]).join(", "), mensaje:resumen, presupuesto_aprox:eur(inversion)+" (estimado)", payload:{ coste_mensual:c.costeMensual, ahorro_mensual:c.ahorroMensual, roi_meses:roiMeses, recomendaciones:recs.map(r=>r[1]) } }).then(({error})=>{ if(error) console.warn("lead:",error.message); }); }catch(e){ console.warn("lead:",e); }
   if(window.emailjs){ sending=true; emailjs.send(EMAILJS_SERVICE,EMAILJS_TEMPLATE,params).catch(e=>console.error("EmailJS:",e)).finally(()=>{sending=false;}); }
 });
 </script>

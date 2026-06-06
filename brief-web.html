@@ -571,6 +571,8 @@ async function submit(){
     comentarios:`=== NUEVO BRIEF WEB — ${d.empresa||""} ===\n\n[RESUMEN]\n${resumen}\n\n[BRIEF COMPLETO]\n${brief}`+(archivos?`\n\n[ARCHIVOS SUBIDOS]${archivos}`:""),
     prompt:prompt
   };
+  // crea el lead en el panel (no bloquea el envío del brief)
+  try{ if(sb) sb.from("leads").insert({ fuente:"brief-web", empresa:d.empresa||null, contacto:d.contacto||null, email:params.email||null, telefono:params.telefono||null, ciudad:params.ciudad||null, sector:d.sector||null, web:(d.web||d.webActual||null), servicios:[...(d.objetivos||[]),...(d.func||[])].join(", ")||null, mensaje:resumen||null, presupuesto_aprox:"(brief web)", payload:{ problema:d.problema, objetivos:d.objetivos, funcionalidades:d.func, cargo:d.cargo, horario:d.horario, assets } }).then(({error})=>{ if(error) console.warn("lead:",error.message); }); }catch(e){ console.warn("lead:",e); }
   const done=()=>{ $("#formWrap").style.display="none"; $("#doneScreen").classList.add("show"); window.scrollTo({top:0,behavior:"smooth"}); };
   if(!window.emailjs){ done(); return; } // fallback: nunca bloquea al cliente
   emailjs.send(EMAILJS_SERVICE,EMAILJS_TEMPLATE,params)
