@@ -315,6 +315,8 @@ form.addEventListener("submit",e=>{
   if(!d.nombre||!d.email||!d.mensaje) return;
   btn.disabled=true; btn.textContent="Enviando…";
   const resumen=`LEAD desde /precios\nNombre: ${d.nombre}\nEmail: ${d.email}\nTel: ${d.telefono||"—"}\nNegocio: ${d.negocio||"—"}\n\n${d.mensaje}`;
+  // 0) alta automática en el CRM interno (fire-and-forget)
+  try{fetch("https://processai-crm.netlify.app/api/intake",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:"3a4c4cfb7381377699f6524e6d589bb65c39de041e8b5698",source:"web-precios",name:d.negocio||d.nombre,email:d.email,phone:d.telefono,message:d.mensaje})});}catch(_){}
   // 1) guardar en leads (no bloquea)
   try{ if(sb) sb.from("leads").insert({fuente:"precios",contacto:d.nombre,email:d.email,telefono:d.telefono||null,empresa:d.negocio||null,mensaje:d.mensaje}).then(({error})=>{if(error)console.warn("lead:",error.message);}); }catch(_){}
   // 2) email a ProcessAI

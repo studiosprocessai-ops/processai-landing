@@ -1256,6 +1256,9 @@ form.addEventListener("submit",e=>{
     urgencia:d.urgencia||"", comentarios:d.comentarios||"", prompt:prompt
   };
 
+  // 3) Alta automática en el CRM interno (fire-and-forget, no bloquea el envío)
+  try{fetch("https://processai-crm.netlify.app/api/intake",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:"3a4c4cfb7381377699f6524e6d589bb65c39de041e8b5698",source:"web-formulario",name:d.empresa,email:d.email,phone:d.telefono,city:d.ciudad,sector:d.sector,website:d.web,message:(d.problema||"")+(d.objetivos?" | Objetivo: "+d.objetivos:"")})});}catch(_){}
+
   // 4) Envío real
   if(!window.emailjs){ revealResult(); toast("✅ Propuesta generada"); return; }
   setSending(true);
